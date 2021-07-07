@@ -37,58 +37,64 @@ export function BookPage() {
   const [books] = useCollectionData(bookQuery, { idField: "id" });
 
   return (
-    <>
+    <div>
       <form>
-        <TextField
-          label="Title"
-          value={bookNameValue}
-          onChange={(e) => setBookNameValue(e.target.value)}
-        />
-        <TextField
-          label="Author"
-          value={authorNameValue}
-          onChange={(e) => setAuthorNameValue(e.target.value)}
-        />
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={(e) => {
-            e.preventDefault();
-            request
-              .get("https://www.googleapis.com/books/v1/volumes")
-              .query({
-                q: bookNameValue,
-                inauthor: authorNameValue,
-                intitle: bookNameValue,
-              })
-              .then((data) => {
-                setGenres(data.body.items[1].volumeInfo.categories);
-                console.log(
-                  "Genre: " + data.body.items[1].volumeInfo.categories
-                );
-                setPageCount(data.body.items[1].volumeInfo.pageCount);
-                console.log(
-                  "PageCount: " + data.body.items[1].volumeInfo.pageCount
-                );
-              });
+        <Box display="flex" align-items="center" m={1}>
+          <TextField
+            label="Title"
+            value={bookNameValue}
+            onChange={(e) => setBookNameValue(e.target.value)}
+            style={{ paddingRight: 8 }}
+          />
+          <TextField
+            label="Author"
+            value={authorNameValue}
+            onChange={(e) => setAuthorNameValue(e.target.value)}
+            style={{ paddingRight: 8 }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            alignSelf="flex-end"
+            onClick={(e) => {
+              e.preventDefault();
+              if (bookNameValue !== "" && authorNameValue !== "") {
+                request
+                  .get("https://www.googleapis.com/books/v1/volumes")
+                  .query({
+                    q: bookNameValue,
+                    inauthor: authorNameValue,
+                    intitle: bookNameValue,
+                  })
+                  .then((data) => {
+                    setGenres(data.body.items[1].volumeInfo.categories);
+                    console.log(
+                      "Genre: " + data.body.items[1].volumeInfo.categories
+                    );
+                    setPageCount(data.body.items[1].volumeInfo.pageCount);
+                    console.log(
+                      "PageCount: " + data.body.items[1].volumeInfo.pageCount
+                    );
+                  });
 
-            console.log("PageCount " + pageCountValue);
-            console.log("Genre " + genresValue);
-            booksRef.add(
-              {
-                name: bookNameValue,
-                author: authorNameValue,
-                genres: genresValue,
-                pageCount: pageCountValue,
-              },
-              setBookNameValue(""),
-              setAuthorNameValue("")
-            );
-          }}
-        >
-          Add
-        </Button>
+                booksRef.add(
+                  {
+                    name: bookNameValue,
+                    author: authorNameValue,
+                    genres: genresValue,
+                    pageCount: pageCountValue,
+                  },
+                  setBookNameValue(""),
+                  setAuthorNameValue("")
+                );
+              }
+            }}
+          >
+            Add
+          </Button>
+        </Box>
       </form>
+
       <div>
         {books
           ? books.map((book) => (
@@ -105,7 +111,7 @@ export function BookPage() {
             ))
           : null}
       </div>
-    </>
+    </div>
   );
 }
 
