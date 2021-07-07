@@ -26,6 +26,18 @@ export function HomePage() {
 
   const db = firebase.firestore();
 
+  const booksRef = db.collection("books");
+  const bookQuery = booksRef.orderBy("author");
+  const [books] = useCollectionData(bookQuery, { idField: "id" });
+
+  var totalPages = 0;
+
+  if (books) {
+    books.forEach((book) => {
+      totalPages += book.pageCount;
+    });
+  }
+
   return (
     <>
       <div>
@@ -56,9 +68,19 @@ export function HomePage() {
             what I am reading, and maybe at one point allow them to post their
             own reading lists. Also, I think that it would be cool to keep stats
             on the books I am reading. Things like genre, page count, reading
-            time, and other stats could be interesting.
+            time, and other stats could be interesting. Need to add the date
+            that the entry was entered.
           </Typography>
         </Box>
+
+        {books ? (
+          <Box>
+            <Typography variant="body1">
+              Brendan has currently tracked {books.length} books and read{" "}
+              {totalPages} pages
+            </Typography>
+          </Box>
+        ) : null}
       </div>
     </>
   );
