@@ -3,9 +3,9 @@ import { Typography, Drawer, TextField, Button, Box } from "@material-ui/core";
 import firebase from "firebase";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 import "tailwindcss/tailwind.css";
+import request from "superagent";
 
 export function BookPage() {
-  //set up db
   var firebaseConfig = {
     apiKey: "AIzaSyD3wYGfzzoMtt2AAfbCr2ubYsoqvfrT75g",
     authDomain: "book-site-6b76c.firebaseapp.com",
@@ -16,15 +16,18 @@ export function BookPage() {
     appId: "1:701453654538:web:214986cbf7f8ccc7a85df3",
     measurementId: "G-XZ28S34HXP",
   };
+
+  //set up db
   if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
   } else {
     firebase.app(); // if already initialized, use that one
   }
 
-  const [drawer, toggleDrawer] = useState(false);
   const [bookNameValue, setBookNameValue] = useState("");
   const [authorNameValue, setAuthorNameValue] = useState("");
+  const [pageCountValue, setPageCount] = useState(0);
+  const [genresValue, setGenres] = useState([]);
 
   const db = firebase.firestore();
 
@@ -35,32 +38,48 @@ export function BookPage() {
 
   return (
     <>
-      <div>
-        {books
-          ? books.map((book) => (
-              <Typography>{book.name + " by: " + book.author} </Typography>
-            ))
-          : null}
-      </div>
       <form>
         <TextField
-          label="name"
+          label="Title"
           value={bookNameValue}
           onChange={(e) => setBookNameValue(e.target.value)}
         />
         <TextField
-          label="author"
+          label="Author"
           value={authorNameValue}
           onChange={(e) => setAuthorNameValue(e.target.value)}
         />
         <Button
           variant="contained"
           color="primary"
-          onClick={() => {
+          onClick={(e) => {
+            e.preventDefault();
+            request
+              .get("https://www.googleapis.com/books/v1/volumes")
+              .query({
+                q: bookNameValue,
+                inauthor: authorNameValue,
+                intitle: bookNameValue,
+              })
+              .then((data) => {
+                setGenres(data.body.items[1].volumeInfo.categories);
+                console.log(
+                  "Genre: " + data.body.items[1].volumeInfo.categories
+                );
+                setPageCount(data.body.items[1].volumeInfo.pageCount);
+                console.log(
+                  "PageCount: " + data.body.items[1].volumeInfo.pageCount
+                );
+              });
+
+            console.log("PageCount " + pageCountValue);
+            console.log("Genre " + genresValue);
             booksRef.add(
               {
                 name: bookNameValue,
                 author: authorNameValue,
+                genres: genresValue,
+                pageCount: pageCountValue,
               },
               setBookNameValue(""),
               setAuthorNameValue("")
@@ -70,6 +89,22 @@ export function BookPage() {
           Add
         </Button>
       </form>
+      <div>
+        {books
+          ? books.map((book) => (
+              <div key={book.name}>
+                <Typography>{book.name + " by: " + book.author}</Typography>
+                <Typography style={{ paddingBottom: 6 }}>
+                  Info
+                  {" Page Count: " +
+                    book.pageCount +
+                    " Genre: " +
+                    book.genres[0]}
+                </Typography>
+              </div>
+            ))
+          : null}
+      </div>
     </>
   );
 }
