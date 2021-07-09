@@ -4,6 +4,7 @@ import firebase from "firebase";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 import "tailwindcss/tailwind.css";
 import request from "superagent";
+import { Bookmark } from "@material-ui/icons";
 
 export function BookPage() {
   var firebaseConfig = {
@@ -28,6 +29,7 @@ export function BookPage() {
   const [authorNameValue, setAuthorNameValue] = useState("");
   const [pageCountValue, setPageCount] = useState(0);
   const [genresValue, setGenres] = useState([]);
+  const [bookImage, setBookImage] = useState("");
 
   const db = firebase.firestore();
 
@@ -55,7 +57,7 @@ export function BookPage() {
           <Button
             variant="contained"
             color="primary"
-            alignSelf="flex-end"
+            size="small"
             onClick={(e) => {
               e.preventDefault();
               if (bookNameValue !== "" && authorNameValue !== "") {
@@ -68,12 +70,9 @@ export function BookPage() {
                   })
                   .then((data) => {
                     setGenres(data.body.items[1].volumeInfo.categories);
-                    console.log(
-                      "Genre: " + data.body.items[1].volumeInfo.categories
-                    );
                     setPageCount(data.body.items[1].volumeInfo.pageCount);
-                    console.log(
-                      "PageCount: " + data.body.items[1].volumeInfo.pageCount
+                    setBookImage(
+                      data.body.items[1].volumeInfo.imageLinks.smallThumbnail
                     );
                   });
 
@@ -83,6 +82,7 @@ export function BookPage() {
                     author: authorNameValue,
                     genres: genresValue,
                     pageCount: pageCountValue,
+                    picture: bookImage,
                   },
                   setBookNameValue(""),
                   setAuthorNameValue("")
@@ -98,16 +98,19 @@ export function BookPage() {
       <div>
         {books
           ? books.map((book) => (
-              <div key={book.name}>
-                <Typography>{book.name + " by: " + book.author}</Typography>
-                <Typography style={{ paddingBottom: 6 }}>
+              <Box style={{ paddingBottom: 6 }} key={book.name}>
+                <img src={book.picture} />
+                <Typography>
+                  {"Title: " + book.name + " by: " + book.author}
+                </Typography>
+                <Typography style={{ paddingLeft: 12 }}>
                   Info
                   {" Page Count: " +
                     book.pageCount +
                     " Genre: " +
                     book.genres[0]}
                 </Typography>
-              </div>
+              </Box>
             ))
           : null}
       </div>
